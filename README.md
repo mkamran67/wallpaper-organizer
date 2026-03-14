@@ -1,126 +1,112 @@
 # 🖼 Wallpaper Organizer
 
-A fast CLI tool that scans a folder of wallpaper images and sorts them into subfolders based on **aspect ratio** and **resolution tier** — no exact-match required, it uses ratio brackets.
+A fast CLI tool that scans a folder of wallpaper images and sorts them into subfolders based on **resolution** (default) or **aspect ratio**.
 
-## Installation
+No exact resolution matching is required — it groups images into logical tiers or brackets using the nearest standard sizes.
+
+## 🚀 Installation
+
+Install globally using npm:
 
 ```bash
+# Since the package is not published yet, you can link it locally
+git clone https://github.com/mkamran67/wallpaper-organizer.git
+cd wallpaper-organizer
 npm install
 npm run build
-npm link   # makes `wallpaper-organizer` available globally
+npm link   # makes `wo` available globally
 ```
 
-Or run directly without building:
+Or run directly without installing:
 
 ```bash
-npx tsx src/index.ts <source> [output] [options]
+npx tsx src/cli.ts <source> [output] [options]
 ```
 
-## Usage
+## 🛠 Usage
 
-```
-wallpaper-organizer <source> [output] [options]
+The CLI command is simply `wo`:
+
+```bash
+wo <source> [output] [options]
 ```
 
-| Argument | Description |
-|---|---|
-| `<source>` | Directory containing your wallpapers |
+| Argument   | Description                                                    |
+| ---------- | -------------------------------------------------------------- |
+| `<source>` | Directory containing your wallpapers                           |
 | `[output]` | Where to put organized folders (default: `<source>/organized`) |
 
-## Options
+## ⚙️ Options
 
-| Flag | Description | Default |
-|---|---|---|
-| `-m, --mode <copy\|move>` | Copy or move files | `copy` |
-| `-r, --recursive` | Recurse into sub-directories | off |
-| `--dry-run` | Preview without writing anything | off |
-| `--flat` | Only ratio folders, skip resolution sub-folders | off |
-| `-c, --clean` | Human-friendly folder names | off |
-| `-v, --verbose` | Log every file as it processes | off |
-| `--list-categories` | Print all possible output folders and exit | — |
+| Flag                      | Description                                                            | Default |
+| ------------------------- | ---------------------------------------------------------------------- | ------- |
+| `-m, --mode <copy\|move>` | Copy or move files                                                     | `copy`  |
+| `-r, --recursive`         | Recurse into sub-directories to find images                            | off     |
+| `--dry-run`               | Preview without writing anything                                       | off     |
+| `--by-ratio`              | Group by aspect ratio instead of resolution (e.g. `wide`, `ultrawide`) | off     |
+| `--count`                 | Count images in the source directory and exit (no organizing)          | off     |
+| `-v, --verbose`           | Log every file as it processes                                         | off     |
+| `--list-categories`       | Print all possible output folders and exit                             | —       |
 
-## Examples
+## 💡 Examples
 
 ```bash
-# Preview (safe — no files written)
-wallpaper-organizer ~/Pictures/Wallpapers --dry-run
+# Preview what would happen (safe — no files written)
+wo ~/Pictures/Wallpapers --dry-run
 
 # Copy into organized subfolders, recursing into subfolders
-wallpaper-organizer ~/Pictures/Wallpapers --recursive
+wo ~/Pictures/Wallpapers --recursive
 
-# Move files into clean-named folders
-wallpaper-organizer ~/Downloads/walls ~/Wallpapers --mode move --clean
+# Count all wallpapers recursively (fast analysis)
+wo ~/Pictures/Wallpapers --recursive --count
 
-# Flat mode — only ratio folders, no resolution sub-folder
-wallpaper-organizer ~/walls --flat --clean
+# Group by aspect ratio instead of resolution
+wo ~/Downloads/walls ~/Wallpapers --mode move --by-ratio
 ```
 
-## Folder Structure
+## 📂 Folder Structure
 
-### Technical names (default)
+Images are placed directly into the category folders.
 
-```
+### By Resolution (Default)
+
+Images are grouped by the closest resolution tier (based on the largest dimension):
+
+```text
 organized/
-├── HD_16-9/
-│   ├── 1080p/
-│   ├── 1440p/
-│   └── 4K/
-├── UltraWide_21-9/
-│   └── 1440p/
-├── UltraWide_32-9/
-│   └── 4K/
-├── Wide_16-10/
-├── Classic_4-3/
-├── Square_1-1/
-└── Portrait_9-16/
+├── 5K+/
+├── 4K/
+├── 1440p/
+├── 1080p/
+├── 720p/
+└── SD/
 ```
 
-### Clean names (`--clean`)
+### By Aspect Ratio (`--by-ratio`)
 
-```
+Images are grouped by aspect ratio brackets (width / height):
+
+```text
 organized/
-├── HD/
-│   ├── FHD/     (1080p)
-│   ├── QHD/     (1440p)
-│   └── 4K/
-├── Ultrawide/
-├── Superwide/
-├── Wide/
-├── Classic/
-├── Square/
-└── Portrait/
+├── superwide/     (≥ 3.2:1)
+├── ultrawide/     (2.1:1 - 3.2:1)
+├── wide/          (1.65:1 - 2.1:1)
+├── standard/      (1.4:1 - 1.65:1)
+├── classic/       (1.1:1 - 1.4:1)
+├── square/        (~ 1:1)
+└── portrait/      (< 0.9:1)
 ```
 
-## Aspect Ratio Brackets
+## 🖼 Supported Formats
 
-| Folder | Ratio range | Examples |
-|---|---|---|
-| `UltraWide_32-9` / `Superwide` | ≥ 3.2:1 | 7680×2160, 5120×1440 |
-| `UltraWide_21-9` / `Ultrawide` | 2.1–3.2 | 3440×1440, 2560×1080 |
-| `HD_16-9` / `HD` | 1.65–2.1 | 1920×1080, 2560×1440, 3840×2160 |
-| `Wide_16-10` / `Wide` | 1.4–1.65 | 2560×1600, 1920×1200 |
-| `Classic_4-3` / `Classic` | 1.1–1.4 | 1024×768, 1600×1200 |
-| `Square_1-1` / `Square` | 0.9–1.1 | 1000×1000 |
-| `Portrait_9-16` / `Portrait` | < 0.9 | 1080×1920 |
+The tool uses `sharp` under the hood and automatically detects sizes for:
+`jpg`, `jpeg`, `png`, `webp`, `tiff`, `tif`, `bmp`, `gif`, `avif`
 
-## Resolution Tiers
-
-| Tech label | Clean label | Min resolution |
-|---|---|---|
-| `5K` | `5K+` | 5120 × 2160 |
-| `4K` | `4K` | 3840 × 2160 |
-| `1440p` | `QHD` | 2560 × 1440 |
-| `1080p` | `FHD` | 1920 × 1080 |
-| `720p` | `HD` | 1280 × 720 |
-| `SD` | `SD` | < 720p |
-
-## Supported Formats
-
-`jpg`, `jpeg`, `png`, `webp`, `tiff`, `bmp`, `gif`, `avif`
-
-## Development
+## 👨‍💻 Development
 
 ```bash
-npm test          # run unit tests (vitest)
-npm run build     # compile TypeScript → dist/
+npm install       # Install dependencies
+npm run dev       # Run using tsx
+npm test          # Run unit tests (vitest)
+npm run build     # Compile TypeScript → dist/
 ```
