@@ -8,6 +8,12 @@ No exact resolution matching is required — it groups images into logical tiers
 
 Install globally using npm:
 
+```
+npm i wallpaper-organizer
+```
+
+or
+
 ```bash
 # Since the package is not published yet, you can link it locally
 git clone https://github.com/mkamran67/wallpaper-organizer.git
