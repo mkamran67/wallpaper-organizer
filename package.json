@@ -1,6 +1,6 @@
 {
 	"name": "wallpaper-organizer",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "CLI tool to organize wallpapers into folders by aspect ratio and resolution",
 	"type": "commonjs",
 	"main": "dist/index.js",

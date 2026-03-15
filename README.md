@@ -9,7 +9,7 @@ No exact resolution matching is required — it groups images into logical tiers
 Install globally using npm:
 
 ```
-npm i wallpaper-organizer
+npm install -g wallpaper-organizer
 ```
 
 or
