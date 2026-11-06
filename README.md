@@ -1,27 +1,34 @@
 # 🖼 Wallpaper Organizer
 
-A fast CLI tool that scans a folder of wallpaper images and sorts them into subfolders based on **resolution** (default) or **aspect ratio**.
+A fast CLI tool that scans a folder of wallpaper images and sorts them into subfolders based on **resolution** (default), **aspect ratio**, or **device type**.
 
 No exact resolution matching is required — it groups images into logical tiers or brackets using the nearest standard sizes.
 
 ## 🚀 Installation
 
-Install globally using npm:
-
-```
-npm install -g wallpaper-organizer
-```
-
-or
+Requires Node.js 18 or newer, including npm.
+From this checkout, run:
 
 ```bash
-# Since the package is not published yet, you can link it locally
-git clone https://github.com/mkamran67/wallpaper-organizer.git
-cd wallpaper-organizer
-npm install
-npm run build
-npm link   # makes `wo` available globally
+./install.sh
+wo --help
 ```
+
+The script installs locked dependencies, builds the CLI, and uses `npm link` to make `wo` available globally.
+Run `./install.sh` again after updating the source to rebuild and update an existing global installation.
+It can also be invoked by its full path from another directory.
+The installer is tested on macOS.
+
+If `wo` is not found after installation, add `$(npm prefix -g)/bin` to your shell's `PATH`.
+The global command links to this checkout, so keep the project folder in place and run `npm run build` after changing the source.
+To remove the global command, run:
+
+```bash
+./uninstall.sh
+```
+
+The uninstall script keeps the project folder and your images.
+Both scripts use the active Node.js installation's npm global prefix.
 
 Or run directly without installing:
 
@@ -50,14 +57,17 @@ wo <source> [output] [options]
 | `-r, --recursive`         | Recurse into sub-directories to find images                            | off     |
 | `--dry-run`               | Preview without writing anything                                       | off     |
 | `--by-ratio`              | Group by aspect ratio instead of resolution (e.g. `wide`, `ultrawide`) | off     |
+| `--by-device`             | Group into `desktop` (landscape or square) and `portrait` (mobile/portrait monitor) | off |
 | `--count`                 | Count images in the source directory and exit (no organizing)          | off     |
 | `-v, --verbose`           | Log every file as it processes                                         | off     |
-| `--list-categories`       | Print all possible output folders and exit                             | —       |
+| `--list-categories`       | Print all possible output folders and exit                             | -       |
+
+Use either `--by-device` or `--by-ratio`; combining them is rejected.
 
 ## 💡 Examples
 
 ```bash
-# Preview what would happen (safe — no files written)
+# Preview what would happen (no files written)
 wo ~/Pictures/Wallpapers --dry-run
 
 # Copy into organized subfolders, recursing into subfolders
@@ -68,6 +78,12 @@ wo ~/Pictures/Wallpapers --recursive --count
 
 # Group by aspect ratio instead of resolution
 wo ~/Downloads/walls ~/Wallpapers --mode move --by-ratio
+
+# Group for desktop monitors or portrait displays, including mobile
+wo ~/Pictures/Wallpapers --recursive --by-device
+
+# Preview device grouping without copying or moving anything
+wo ~/Pictures/Wallpapers --recursive --by-device --dry-run --verbose
 ```
 
 ## 📂 Folder Structure
@@ -101,6 +117,17 @@ organized/
 ├── classic/       (1.1:1 - 1.4:1)
 ├── square/        (~ 1:1)
 └── portrait/      (< 0.9:1)
+```
+
+### By Device Type (`--by-device`)
+
+Device grouping uses image orientation, with square images included in `desktop`.
+Any image taller than it is wide goes in `portrait`, including nearly square portrait images.
+
+```text
+organized/
+├── desktop/      (width >= height: desktop monitors, including square images)
+└── portrait/     (height > width: mobile or portrait monitors)
 ```
 
 ## 🖼 Supported Formats

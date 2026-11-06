@@ -4,6 +4,7 @@
  *
  * Default (by resolution): 4K | 1440p | 1080p | 720p | SD
  * With --by-ratio:         ultrawide | wide | standard | portrait | square
+ * With --by-device:        desktop | portrait
  */
 
 export interface Classification {
@@ -11,6 +12,8 @@ export interface Classification {
   resFolder: string;
   /** Folder name for ratio-based grouping */
   ratioFolder: string;
+  /** Landscape and square images suit desktops; taller images suit portrait displays. */
+  deviceFolder: "desktop" | "portrait";
 }
 
 // ---------------------------------------------------------------------------
@@ -56,7 +59,7 @@ const RATIO_BRACKETS: RatioBracket[] = [
 
 /**
  * Classify an image by its width × height.
- * Returns both a resolution folder and a ratio folder.
+ * Returns resolution, ratio, and device folders.
  */
 export function classifyImage(width: number, height: number): Classification {
   if (width <= 0 || height <= 0) {
@@ -83,13 +86,17 @@ export function classifyImage(width: number, height: number): Classification {
   return {
     resFolder:   tier.label,
     ratioFolder: bracket.label,
+    deviceFolder: width >= height ? "desktop" : "portrait",
   };
 }
 
 /**
  * Return all possible category folder names for --list-categories.
  */
-export function listCategories(byRatio: boolean): string[] {
+export function listCategories(byRatio: boolean, byDevice = false): string[] {
+  if (byDevice) {
+    return ["desktop", "portrait"];
+  }
   if (byRatio) {
     return RATIO_BRACKETS.map((b) => b.label);
   }

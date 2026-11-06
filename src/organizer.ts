@@ -23,6 +23,8 @@ export interface OrganizerOptions {
   dryRun: boolean;
   /** If true, group by aspect ratio instead of resolution */
   byRatio: boolean;
+  /** If true, group by desktop or portrait device orientation. */
+  byDevice?: boolean;
 }
 
 export interface FileResult {
@@ -74,7 +76,7 @@ export async function organizeImages(
   options: OrganizerOptions,
   onProgress?: (result: FileResult, index: number, total: number) => void
 ): Promise<OrganizerSummary> {
-  const { files, outputDir, mode, dryRun, byRatio } = options;
+  const { files, outputDir, mode, dryRun, byRatio, byDevice = false } = options;
 
   const results: FileResult[] = [];
   const seen = new Set<string>(); // tracks dest paths this session
@@ -93,8 +95,9 @@ export async function organizeImages(
         result = { src, dest: "", folder: "", width: 0, height: 0, status: "skipped", error: "Cannot read dimensions" };
       } else {
         const classification = classifyImage(width, height);
-        const category = byRatio ? classification.ratioFolder : classification.resFolder;
-        const folderKey = category;
+        const folderKey = byDevice
+          ? classification.deviceFolder
+          : byRatio ? classification.ratioFolder : classification.resFolder;
 
         const destDir  = path.join(outputDir, folderKey);
         const fileName = path.basename(src);

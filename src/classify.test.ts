@@ -4,7 +4,25 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { classifyImage } from "./classify.js";
+import { classifyImage, listCategories } from "./classify.js";
+
+describe("classifyImage - device folder", () => {
+  it.each<[number, number, string]>([
+    [1920, 1080, "desktop"],
+    [7680, 2160, "desktop"],
+    [1024, 768, "desktop"],
+    [1000, 1000, "desktop"],
+    [1001, 1000, "desktop"],
+    [1080, 1920, "portrait"],
+    [1000, 1001, "portrait"],
+  ])("classifies %i x %i as %s", (width, height, folder) => {
+    expect(classifyImage(width, height).deviceFolder).toBe(folder);
+  });
+
+  it("lists only the two device categories", () => {
+    expect(listCategories(false, true)).toEqual(["desktop", "portrait"]);
+  });
+});
 
 describe("classifyImage — ratio folder", () => {
   it("classifies 32:9 (7680×2160) as superwide", () => {

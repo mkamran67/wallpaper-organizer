@@ -18,9 +18,10 @@ const program = new Command();
 program
   .name("wo")
   .description(
-    "Organize wallpaper images into folders by resolution or aspect ratio.\n" +
-    "Default output: organized/<resolution>/images  (e.g. organized/1080p/images)\n" +
-    "With --by-ratio: organized/<ratio>/images       (e.g. organized/wide/images)"
+    "Organize wallpaper images into folders by resolution, aspect ratio, or device type.\n" +
+    "Default output: organized/<resolution>/  (e.g. organized/1080p/)\n" +
+    "With --by-ratio: organized/<ratio>/      (e.g. organized/wide/)\n" +
+    "With --by-device: organized/<device>/    (desktop/ or portrait/)"
   )
   .version("1.0.0");
 
@@ -31,6 +32,7 @@ program
   .option("-r, --recursive", "Recurse into sub-directories to find images", false)
   .option("--dry-run", "Preview what would happen without writing any files", false)
   .option("--by-ratio", "Group by aspect ratio instead of resolution (e.g. wide, ultrawide)", false)
+  .option("--by-device", "Group by device: desktop (landscape or square) or portrait (mobile/portrait monitor)", false)
   .option("-v, --verbose", "Log every file as it is processed", false)
   .option("--count", "Count images in the source directory and exit (no organizing)", false)
   .option("--list-categories", "Print all possible output category folders and exit", false)
@@ -44,13 +46,19 @@ program
     const mode      = opts.mode as "copy" | "move";
     const dryRun    = opts.dryRun as boolean;
     const byRatio   = opts.byRatio as boolean;
+    const byDevice  = opts.byDevice as boolean;
     const verbose   = opts.verbose as boolean;
     const recursive = opts.recursive as boolean;
+
+    if (byRatio && byDevice) {
+      console.error(chalk.red("Cannot combine --by-device and --by-ratio. Choose one grouping option."));
+      process.exit(1);
+    }
 
     // ---------------------------------------------------------------- --list-categories
     if (opts.listCategories) {
       console.log(chalk.bold("\nAvailable output categories:\n"));
-      listCategories(byRatio).forEach((c) => console.log("  ", chalk.cyan(c)));
+      listCategories(byRatio, byDevice).forEach((c) => console.log("  ", chalk.cyan(c)));
       console.log();
       process.exit(0);
     }
@@ -123,7 +131,10 @@ program
     console.log(`  ${chalk.bold("Output :")} ${outputDir}`);
     console.log(`  ${chalk.bold("Mode   :")} ${mode}${dryRun ? chalk.yellow("  (dry run — no files written)") : ""}`);
     console.log(`  ${chalk.bold("Recurse:")} ${recursive ? "yes" : "no"}`);
-    console.log(`  ${chalk.bold("Group  :")} ${byRatio ? "by ratio (e.g. wide, ultrawide)" : "by resolution (e.g. 1080p, 4K)"}`);
+    const grouping = byDevice
+      ? "by device (desktop, portrait)"
+      : byRatio ? "by ratio (e.g. wide, ultrawide)" : "by resolution (e.g. 1080p, 4K)";
+    console.log(`  ${chalk.bold("Group  :")} ${grouping}`);
     console.log(chalk.dim("  ─────────────────────────────────────────────"));
     console.log();
 
@@ -156,7 +167,7 @@ program
     const mainSpinner = ora(`${mode === "copy" ? "Copying" : "Moving"} images…`).start();
 
     const summary = await organizeImages(
-      { files, outputDir, mode, dryRun, byRatio },
+      { files, outputDir, mode, dryRun, byRatio, byDevice },
       (result, index) => {
         if (result.status === "ok") {
           folderCounts[result.folder] = (folderCounts[result.folder] ?? 0) + 1;
